@@ -1,41 +1,67 @@
+
+using Microsoft.AspNetCore.Diagnostics;
+using System.Text.Json;
+using EnterpriseOrderManagement.Domain;
+using Microsoft.EntityFrameworkCore;
+using EnterpriseOrderManagement.Repository.Repository;
+using EnterpriseOrderManagement.Repository.IRepository;
+using EnterpriseOrderManagement.Services.Service;
+using EnterpriseOrderManagement.Services.IService;
+
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// Database Configuration
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection")
+    ));
+builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+builder.Services.AddScoped<IBrandService, BrandService>();
+
+// Swagger Configuration
+builder.Services.AddEndpointsApiExplorer();
+builder.Services.AddSwaggerGen();
+builder.Services.AddControllers();
 
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
+app.UseExceptionHandler(errorApp => errorApp.Run(async context =>
+{
+    var exception = context.Features.Get<IExceptionHandlerPathFeature>()?.Error;
+    var isValidationError = exception is ArgumentException;
+
+    context.Response.StatusCode = isValidationError
+        ? StatusCodes.Status400BadRequest
+        : StatusCodes.Status500InternalServerError;
+    context.Response.ContentType = "application/problem+json";
+
+    var problem = new
+    {
+        type = "about:blank",
+        title = isValidationError ? "Validation error" : "An unexpected error occurred.",
+        status = context.Response.StatusCode,
+        detail = isValidationError ? exception?.Message : "Please try again later."
+    };
+
+    await context.Response.WriteAsync(JsonSerializer.Serialize(problem));
+}));
+
+// Swagger UI
 if (app.Environment.IsDevelopment())
 {
-    app.MapOpenApi();
+    app.UseSwagger();
+    app.UseSwaggerUI();
 }
 
 app.UseHttpsRedirection();
 
-var summaries = new[]
-{
-    "Freezing", "Bracing", "Chilly", "Cool", "Mild", "Warm", "Balmy", "Hot", "Sweltering", "Scorching"
-};
-
+// Test API
 app.MapGet("/weatherforecast", () =>
 {
-    var forecast =  Enumerable.Range(1, 5).Select(index =>
-        new WeatherForecast
-        (
-            DateOnly.FromDateTime(DateTime.Now.AddDays(index)),
-            Random.Shared.Next(-20, 55),
-            summaries[Random.Shared.Next(summaries.Length)]
-        ))
-        .ToArray();
-    return forecast;
+    return Results.Ok("API is working successfully!");
 })
 .WithName("GetWeatherForecast");
 
-app.Run();
+app.MapControllers();
 
-record WeatherForecast(DateOnly Date, int TemperatureC, string? Summary)
-{
-    public int TemperatureF => 32 + (int)(TemperatureC / 0.5556);
-}
+app.Run();
