@@ -1,0 +1,8 @@
+<Solution>
+  <Project Path="EnterpriseOrderManagement.API/EnterpriseOrderManagement.API.csproj" />
+  <Project Path="EnterpriseOrderManagement.Assembler/EnterpriseOrderManagement.Assembler.csproj" />
+  <Project Path="EnterpriseOrderManagement.Common/EnterpriseOrderManagement.Common.csproj" />
+  <Project Path="EnterpriseOrderManagement.Domain/EnterpriseOrderManagement.Domain.csproj" />
+  <Project Path="EnterpriseOrderManagement.Repository/EnterpriseOrderManagement.Repository.csproj" />
+  <Project Path="EnterpriseOrderManagement.Services/EnterpriseOrderManagement.Services.csproj" />
+</Solution>

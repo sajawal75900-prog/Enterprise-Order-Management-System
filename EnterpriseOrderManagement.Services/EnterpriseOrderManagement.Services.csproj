@@ -1,0 +1,16 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\EnterpriseOrderManagement.Assembler\EnterpriseOrderManagement.Assembler.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderManagement.Common\EnterpriseOrderManagement.Common.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderManagement.Domain\EnterpriseOrderManagement.Domain.csproj" />
+    <ProjectReference Include="..\EnterpriseOrderManagement.Repository\EnterpriseOrderManagement.Repository.csproj" />
+  </ItemGroup>
+
+</Project>
