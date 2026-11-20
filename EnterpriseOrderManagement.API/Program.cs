@@ -7,6 +7,8 @@ using EnterpriseOrderManagement.Repository.Repository;
 using EnterpriseOrderManagement.Repository.IRepository;
 using EnterpriseOrderManagement.Services.Service;
 using EnterpriseOrderManagement.Services.IService;
+using EnterpriseOrderManagement.Assembler.Assembler;
+using EnterpriseOrderManagement.Assembler.IAssembler;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -16,7 +18,13 @@ builder.Services.AddDbContext<ApplicationDbContext>(options =>
         builder.Configuration.GetConnectionString("DefaultConnection")
     ));
 builder.Services.AddScoped<IBrandRepository, BrandRepository>();
+
+
+
 builder.Services.AddScoped<IBrandService, BrandService>();
+builder.Services.AddScoped<ICategoryRepository, CategoryRepository>();
+builder.Services.AddScoped<ICategoryAssembler, CategoryAssembler>();
+builder.Services.AddScoped<ICategoryService, CategoryService>();
 
 // Swagger Configuration
 builder.Services.AddEndpointsApiExplorer();

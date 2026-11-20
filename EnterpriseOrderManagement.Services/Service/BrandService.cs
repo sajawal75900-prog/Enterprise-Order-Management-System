@@ -1,29 +1,38 @@
-using EnterpriseOrderManagement.Assembler;
+using EnterpriseOrderManagement.Assembler.IAssembler;
 using EnterpriseOrderManagement.Domain.Dtos;
 using EnterpriseOrderManagement.Repository.IRepository;
 using EnterpriseOrderManagement.Services.IService;
 
 namespace EnterpriseOrderManagement.Services.Service;
 
-public sealed class BrandService(IBrandRepository brandRepository) : IBrandService
+public sealed class BrandService(IBrandRepository brandRepository,IBrandAssembler brandAssembler) : IBrandService
 {
-    public async Task<IReadOnlyList<BrandDto>> GetAllAsync(CancellationToken cancellationToken = default)
+    public async Task<IReadOnlyList<BrandDto>> GetAllAsync(
+        CancellationToken cancellationToken = default)
     {
         var brands = await brandRepository.GetAllAsync(cancellationToken);
-        return brands.Select(brand => brand.ToDto()).ToList();
+
+        return brands
+            .Select(brand => brandAssembler.ToDto(brand))
+            .ToList();
     }
 
     public async Task<BrandDto?> GetByIdAsync(int id, CancellationToken cancellationToken = default)
     {
         ValidateId(id);
-        return (await brandRepository.GetByIdAsync(id, cancellationToken))?.ToDto();
+
+        var brand = await brandRepository.GetByIdAsync(id, cancellationToken);
+
+        return brand is null ? null : brandAssembler.ToDto(brand);
     }
 
     public async Task<BrandDto> CreateAsync(BrandDto dto, CancellationToken cancellationToken = default)
     {
         ValidateName(dto.Name);
-        var brand = await brandRepository.CreateAsync(dto.ToEntity(), cancellationToken);
-        return brand.ToDto();
+
+        var brand = await brandRepository.CreateAsync(brandAssembler.ToEntity(dto), cancellationToken);
+
+        return brandAssembler.ToDto(brand);
     }
 
     public async Task<BrandDto?> UpdateAsync(int id, BrandDto dto, CancellationToken cancellationToken = default)
@@ -32,26 +41,39 @@ public sealed class BrandService(IBrandRepository brandRepository) : IBrandServi
         ValidateName(dto.Name);
 
         var brand = await brandRepository.GetByIdAsync(id, cancellationToken);
+
         if (brand is null)
         {
             return null;
         }
 
-        brand.ApplyUpdate(dto);
+        // Update existing entity
+        brand.Name = dto.Name.Trim();
+        brand.Description = dto.Description?.Trim();
+        brand.IsActive = dto.IsActive;
+
+        // Update audit fields
+        brand.UpdatedAt = DateTime.UtcNow;
+        brand.UpdatedBy = "System";
+
         await brandRepository.UpdateAsync(brand, cancellationToken);
-        return brand.ToDto();
+
+        return brandAssembler.ToDto(brand);
     }
 
     public async Task<bool> DeleteAsync(int id, CancellationToken cancellationToken = default)
     {
         ValidateId(id);
+
         var brand = await brandRepository.GetByIdAsync(id, cancellationToken);
+
         if (brand is null)
         {
             return false;
         }
 
         await brandRepository.DeleteAsync(brand, cancellationToken);
+
         return true;
     }
 

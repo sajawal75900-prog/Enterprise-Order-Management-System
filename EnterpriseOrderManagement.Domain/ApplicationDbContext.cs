@@ -7,6 +7,8 @@ namespace EnterpriseOrderManagement.Domain
     {
         public DbSet<Brand> Brands => Set<Brand>();
 
+        public DbSet<Category> Categories => Set<Category>();
+
         public ApplicationDbContext(DbContextOptions<ApplicationDbContext> options) : base(options)
         {
         }
